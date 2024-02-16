@@ -1,5 +1,5 @@
 ARG APACHE_VERSION=""
-FROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}alpine
+FROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}debian
 
 # Update and install necessary packages
 RUN apk update && \

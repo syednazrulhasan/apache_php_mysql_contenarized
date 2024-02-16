@@ -1,4 +1,4 @@
-FROM php:${PHP_VERSION:+${PHP_VERSION}-}fpm-alpine
+FROM php:${PHP_VERSION:+${PHP_VERSION}-}fpm-debian
 
 # Install necessary packages and PHP extensions
 RUN apk update && \
