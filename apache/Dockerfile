@@ -1,4 +1,5 @@
-FROM httpd:${APACHE_VERSION}-alpine
+ARG APACHE_VERSION=""
+FROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}alpine
 
 # Install necessary packages and PHP extensions
 RUN apk update && \
