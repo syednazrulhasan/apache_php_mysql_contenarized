@@ -1,5 +1,5 @@
 ARG APACHE_VERSION=""
-FROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}2.4
+FROM httpd:${APACHE_VERSION}
 
 # Install necessary packages and PHP extensions
 RUN apt-get update && \
