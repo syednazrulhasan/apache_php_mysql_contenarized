@@ -1,13 +1,13 @@
-FROM php:${PHP_VERSION:+${PHP_VERSION}-}fpm-debian
+FROM php:${PHP_VERSION:+${PHP_VERSION}-}fpm
 
-# Install necessary packages and PHP extensions
-RUN apk update && \
-    apk upgrade && \
-    apk add --no-cache \
+# Update packages and install necessary packages and PHP extensions
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
         curl \
         libpng-dev \
-        libjpeg-turbo-dev \
-        freetype-dev \
+        libjpeg-dev \
+        libfreetype6-dev \
         libzip-dev \
         zip \
         unzip

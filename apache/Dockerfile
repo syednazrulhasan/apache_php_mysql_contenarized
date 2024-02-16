@@ -1,28 +1,40 @@
 ARG APACHE_VERSION=""
-FROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}debian
+FROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}2.4
 
-# Update and install necessary packages
-RUN apk update && \
-    apk upgrade && \
-    apk add --no-cache \
-        apache2-ssl \
-        apache2-utils \
-        openssl
+# Install necessary packages and PHP extensions
+RUN apt-get update && \
+    apt-get install -y \
+        curl \
+        libapache2-mod-php7.4 \
+        libpng-dev \
+        libjpeg-dev \
+        libfreetype6-dev \
+        libzip-dev \
+        zip \
+        unzip \
+        openssl && \
+    docker-php-ext-install -j$(nproc) mysqli gd pdo_mysql zip && \
+    docker-php-ext-configure zip --with-libzip && \
+    docker-php-ext-install -j$(nproc) zip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Enable necessary Apache modules
-RUN sed -i '/LoadModule rewrite_module/s/^#//g' /usr/local/apache2/conf/httpd.conf && \
-    sed -i '/LoadModule ssl_module/s/^#//g' /usr/local/apache2/conf/httpd.conf
+RUN a2enmod rewrite && \
+    a2enmod ssl
 
 # Allow .htaccess overrides
-RUN sed -i '/<Directory "\/usr\/local\/apache2\/htdocs">/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /usr/local/apache2/conf/httpd.conf
+RUN sed -i '/<Directory "\/var\/www\/html">/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
 # Copy apache vhost file to proxy php requests to php-fpm container
-COPY demo.apache.conf /usr/local/apache2/conf/demo.apache.conf
-RUN echo "Include /usr/local/apache2/conf/demo.apache.conf" \
-    >> /usr/local/apache2/conf/httpd.conf
+COPY demo.apache.conf /etc/apache2/sites-available/demo.apache.conf
+RUN a2ensite demo.apache.conf
 
 # Set the working directory to the root of the web application
 WORKDIR /var/www/html
 
 # Expose port 80
 EXPOSE 80
+
+# Start Apache service
+CMD ["httpd-foreground"]
