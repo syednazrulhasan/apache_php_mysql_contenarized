@@ -1,5 +1,5 @@
 ARG APACHE_VERSION=""
-ROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}alpine
+FROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}alpine
 
 # Update and install necessary packages
 RUN apk update && \
