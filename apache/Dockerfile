@@ -1,43 +1,38 @@
 ARG APACHE_VERSION=""
 FROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}alpine
 
-# Install necessary packages and PHP extensions
+# Update and install necessary packages
 RUN apk update && \
+    apk upgrade && \
     apk add --no-cache \
-        apache2-proxy \
+        apache2-ssl \
         apache2-utils \
+        openssl \
         libpng-dev \
         libjpeg-turbo-dev \
-        freetype-dev \
+        libfreetype6-dev \
         libzip-dev \
         zip \
         unzip \
-        mariadb-connector-c \
-        openssl && \
-    docker-php-ext-install -j$(nproc) mysqli gd pdo_mysql zip && \
-    docker-php-ext-configure zip --with-libzip && \
-    docker-php-ext-install -j$(nproc) zip && \
-    apk del libpng-dev libjpeg-turbo-dev freetype-dev libzip-dev && \
-    apk cache clean && \
-    rm -rf /var/cache/apk/*
+        mariadb-dev \
+        php7-mysqli \
+        php7-gd \
+        php7-zip \
+        php7-zlib \
+        php7-fpm \
+        php7-apache2
 
 # Enable necessary Apache modules
-RUN sed -i '/<IfModule mime_module>/,/<\/IfModule>/ s/^\(\s*LoadModule mime_magic_module\)\(\s*options\).*$/\1\n\2 -DSENDFILE=0/' /etc/apache2/httpd.conf && \
-    sed -i '/<IfModule proxy_module>/,/<\/IfModule>/ s/^\(\s*LoadModule proxy_module\)\(\s*options\).*$/\1\n\2 -DSENDFILE=0/' /etc/apache2/httpd.conf && \
-    sed -i '/<IfModule proxy_fcgi_module>/,/<\/IfModule>/ s/^\(\s*LoadModule proxy_fcgi_module\)\(\s*options\).*$/\1\n\2 -DSENDFILE=0/' /etc/apache2/httpd.conf && \
-    sed -i 's/#LoadModule rewrite_module/LoadModule rewrite_module/' /etc/apache2/httpd.conf && \
-    sed -i 's/#LoadModule proxy_module/LoadModule proxy_module/' /etc/apache2/httpd.conf && \
-    sed -i 's/#LoadModule proxy_fcgi_module/LoadModule proxy_fcgi_module/' /etc/apache2/httpd.conf && \
-    a2enmod proxy proxy_fcgi && \
-    apachectl configtest && \
-    apachectl graceful
+RUN sed -i '/LoadModule rewrite_module/s/^#//g' /usr/local/apache2/conf/httpd.conf && \
+    sed -i '/LoadModule ssl_module/s/^#//g' /usr/local/apache2/conf/httpd.conf
 
 # Allow .htaccess overrides
-RUN sed -i '/<Directory "\/var\/www\/html">/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/httpd.conf
+RUN sed -i '/<Directory "\/usr\/local\/apache2\/htdocs">/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /usr/local/apache2/conf/httpd.conf
 
 # Copy apache vhost file to proxy php requests to php-fpm container
-COPY demo.apache.conf /etc/apache2/sites-available/demo.apache.conf
-RUN echo "Include /etc/apache2/sites-available/demo.apache.conf" >> /etc/apache2/httpd.conf
+COPY demo.apache.conf /usr/local/apache2/conf/demo.apache.conf
+RUN echo "Include /usr/local/apache2/conf/demo.apache.conf" \
+    >> /usr/local/apache2/conf/httpd.conf
 
 # Set the working directory to the root of the web application
 WORKDIR /var/www/html
