@@ -15,12 +15,7 @@ RUN apk update && \
         zip \
         unzip \
         mariadb-dev \
-        php7-mysqli \
-        php7-gd \
-        php7-zip \
-        php7-zlib \
-        php7-fpm \
-        php7-apache2
+
 
 # Enable necessary Apache modules
 RUN sed -i '/LoadModule rewrite_module/s/^#//g' /usr/local/apache2/conf/httpd.conf && \
@@ -39,6 +34,3 @@ WORKDIR /var/www/html
 
 # Expose port 80
 EXPOSE 80
-
-# Start Apache service
-CMD ["httpd-foreground"]
