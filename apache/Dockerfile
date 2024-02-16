@@ -1,5 +1,5 @@
 ARG APACHE_VERSION=""
-FROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}alpine
+ROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}alpine
 
 # Update and install necessary packages
 RUN apk update && \
@@ -8,18 +8,16 @@ RUN apk update && \
         apache2-ssl \
         apache2-utils \
         openssl \
+        apache2-utils \
         libpng-dev \
         libjpeg-turbo-dev \
-        libfreetype6-dev \
         libzip-dev \
         zip \
         unzip \
-        mariadb-dev \
+        mariadb-dev
 
-
-# Enable necessary Apache modules
-RUN sed -i '/LoadModule rewrite_module/s/^#//g' /usr/local/apache2/conf/httpd.conf && \
-    sed -i '/LoadModule ssl_module/s/^#//g' /usr/local/apache2/conf/httpd.conf
+RUN sed -i 's#^LoadModule rewrite_module #LoadModule rewrite_module /usr/local/apache2/modules/mod_rewrite.so#' /usr/local/apache2/conf/httpd.conf && \
+    sed -i 's#^LoadModule ssl_module #LoadModule ssl_module /usr/local/apache2/modules/mod_ssl.so#' /usr/local/apache2/conf/httpd.conf
 
 # Allow .htaccess overrides
 RUN sed -i '/<Directory "\/usr\/local\/apache2\/htdocs">/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /usr/local/apache2/conf/httpd.conf
