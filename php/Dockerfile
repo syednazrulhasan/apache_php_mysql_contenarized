@@ -1,4 +1,4 @@
-FROM php:${PHP_VERSION:+${PHP_VERSION}-}fpm
+FROM php:7.4-fpm
 
 # Update packages and install necessary packages and PHP extensions
 RUN apt-get update && \
