@@ -109,11 +109,17 @@ RUN apk update && \
     apk add --no-cache \
         apache2-ssl \
         apache2-utils \
-        openssl
+        openssl \
+        apache2-utils \
+        libpng-dev \
+        libjpeg-turbo-dev \
+        libzip-dev \
+        zip \
+        unzip \
+        mariadb-dev
 
-# Enable necessary Apache modules
-RUN sed -i '/LoadModule rewrite_module/s/^#//g' /usr/local/apache2/conf/httpd.conf && \
-    sed -i '/LoadModule ssl_module/s/^#//g' /usr/local/apache2/conf/httpd.conf
+RUN sed -i 's#^LoadModule rewrite_module #LoadModule rewrite_module /usr/local/apache2/modules/mod_rewrite.so#' /usr/local/apache2/conf/httpd.conf && \
+    sed -i 's#^LoadModule ssl_module #LoadModule ssl_module /usr/local/apache2/modules/mod_ssl.so#' /usr/local/apache2/conf/httpd.conf
 
 # Allow .htaccess overrides
 RUN sed -i '/<Directory "\/usr\/local\/apache2\/htdocs">/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /usr/local/apache2/conf/httpd.conf
@@ -132,16 +138,16 @@ EXPOSE 80
 
 #### php/Dockerfile enable neccesary php extentions and custom user.ini file to overide php defaults
 ```
-FROM php:${PHP_VERSION:+${PHP_VERSION}-}fpm-alpine
+FROM php:7.4-fpm
 
-# Install necessary packages and PHP extensions
-RUN apk update && \
-    apk upgrade && \
-    apk add --no-cache \
+# Update packages and install necessary packages and PHP extensions
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
         curl \
         libpng-dev \
-        libjpeg-turbo-dev \
-        freetype-dev \
+        libjpeg-dev \
+        libfreetype6-dev \
         libzip-dev \
         zip \
         unzip
@@ -197,3 +203,66 @@ LoadModule expires_module /usr/local/apache2/modules/mod_expires.so
 We have demonstrated use of persistent volume in case your container crashes your data is safe in persistent volumes but make sure to keep everything backup there is no best alternate ever to it(backups)
 
 ### Demonstration of docker-compose up!
+
+Step 1 : Pull latest ppdates of OS
+```sudo apt-get update```
+
+Step 2: Install docker by following below steps
+```sudo apt install ca-certificates curl gnupg lsb-release```
+
+```curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg```
+
+```
+echo \
+"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+$(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+Step 3: Install all required software packkages
+
+```sudo apt install  docker.io unzip mysql-client-core-8.0```
+
+Step 4: Chek the docker version to ensure docker is installed
+```docker --version```
+
+Step 5: Start and enable the docker
+```
+sudo systemctl start docker
+sudo systemctl enable docker
+```
+
+Step 6: Install docker compose by following the below commands.
+```
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+```
+
+```sudo chmod +x /usr/local/bin/docker-compose```
+
+Step 7: Verify docker compose version
+```docker-compose --version```
+
+Step 8: Clone the setup files from git
+```git clone https://github.com/syednazrulhasan/apache_php_mysql_contenarized.git```
+
+Step 9: cd into the cloned directory and run following command
+```docker-compose up -d```
+
+
+### Notes
+
+To stop all running containers
+```docker stop $(docker ps -a -q)```
+
+To remove all containers that are stopped
+```docker rm -f $(docker ps -a -q)```
+
+To remove images that are not in use
+```docker rmi -f $(docker images -q)```
+
+To clear system of all cluttered containers
+```docker system prune -a```
+
+
+
+
+
