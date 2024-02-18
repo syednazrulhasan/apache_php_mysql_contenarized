@@ -1,29 +1,34 @@
 # Containerize Apache/PHP/MySQL
-This repo contains code that helps to contenarise Apache/PHP/MySQL and can be spun up with *docker-compose up -d*
+This repo contains code that helps to containerize(dockerize) Apache/PHP/MySQL that can be spun up with *docker-compose up -d* 
 ===================================
 
 ### Intro
-Learn how to containerize Apache,PHP and MySQL quickly for testing or demo purposes using Docker Compose and Dockerfile. Deploy your application environment in moments with flexibility of PHP.ini and Apache.conf files, mirroring your development computer's structure with just one command ```docker-compose up -d```
+Learn how to containerize(dockerize) Apache,PHP and MySQL quickly for testing or demo purposes using Docker Compose and Dockerfile. Deploy your application environment in moments with flexibility of PHP.ini and Apache.conf files, mirroring your development computer's structure with just one command 
+```
+docker-compose up -d
+```
 
 There are 6 simple files that you can clone from this repo's main branch
 
 ```
 /apache_php_mysql_contenarized/
 ├── apache
-│├── demo.apache.conf
-│└── Dockerfile
+│ ├── demo.apache.conf
+│ └── Dockerfile
 ├── docker-compose.yml
 ├── php
-│├── Dockerfile
-│└── user.ini
+│ ├── Dockerfile
+│ └── user.ini
 ├── public_html
- └── index.php
+│ ├── adminer.php
+│ └── index.php
+└── README.md
 ```
 
-Once this structure is replicated next step is to install docker on server OS followed by docker-compose followed by running command ```docker-compose up -d``` to spin up the Apache PHP MySQL servers as docker containers on the host machine.
+Once this structure is replicated next step is to install docker on server OS followed by docker-compose followed by running command ```docker-compose up -d``` to spin up the Apache PHP MySQL as seperate docker containers on the host machine. If you replicate exact same structure it would also create a database with the name `hariyanvicha` also create corresponding user and password associated with that database which can be found under `.env` file. This combination of `dockerfile` and `docker-compose.yml` makes use of persistent volume for database filesysem and web site file systems. 
 
 
-The following code attempts to connect to a MySQL database using the mysqli interface from PHP. If successful, it prints a success. If not, it prints a failed message.
+The following code attempts to connect to a MySQL database using the mysqli interface from PHP. If successful, it prints a success. If not, it prints a failed message. There is `phpinfo()` at the bottom to make sure what possible values do php have on this system
 
 #### index.php
 ```
@@ -45,8 +50,8 @@ phpinfo();
 ?>
 ```
 
-The following is a simple docker-compose.yml that facilitates the contenarization of Apache/PHP/MySQL
-#### docker-compose.yml
+The following is a simple `docker-compose.yml` that facilitates the contenarization of Apache/PHP/MySQL
+#### `docker-compose.yml`
 ```
 version: "3.9"
 services:
@@ -98,7 +103,7 @@ volumes:
     data:
 ```
 
-#### apache/Dockerfile enable necessary Apache modules and .htaccess overide
+#### `apache/Dockerfile` enable necessary Apache modules and .htaccess overide
 ```
 ARG APACHE_VERSION=""
 FROM httpd:${APACHE_VERSION:+${APACHE_VERSION}-}alpine
@@ -136,7 +141,7 @@ WORKDIR /var/www/html
 EXPOSE 80
 ```
 
-#### php/Dockerfile enable neccesary php extentions and custom user.ini file to overide php defaults
+#### `php/Dockerfile` enable neccesary php extentions and custom user.ini file to overide php defaults
 ```
 FROM php:7.4-fpm
 
@@ -162,7 +167,7 @@ RUN docker-php-ext-install \
 COPY user.ini /usr/local/etc/php/conf.d/user.ini
 ```
 
-#### apache/demo.apache.conf
+#### `apache/demo.apache.conf`  enables setup of vistual host or implementaion of SSL 
 ```
 ServerName localhost
 
@@ -200,17 +205,25 @@ LoadModule expires_module /usr/local/apache2/modules/mod_expires.so
 ```
 
 ### Volumes
-We have demonstrated use of persistent volume in case your container crashes your data is safe in persistent volumes but make sure to keep everything backup there is no best alternate ever to it(backups)
+We have demonstrated use of persistent volume in case your container crashes your data is safe in persistent volumes but make sure to keep everything backup **there is no best alternate ever to backups so please retain them before doing anything**
 
 ### Demonstration of docker-compose up!
 
 Step 1 : Pull latest ppdates of OS
-```sudo apt-get update```
+
+```
+sudo apt-get update
+```
 
 Step 2: Install docker by following below steps
-```sudo apt install ca-certificates curl gnupg lsb-release```
 
-```curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg```
+```
+sudo apt install ca-certificates curl gnupg lsb-release
+```
+
+```
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+```
 
 ```
 echo \
@@ -220,12 +233,17 @@ $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev
 
 Step 3: Install all required software packkages
 
-```sudo apt install  docker.io unzip mysql-client-core-8.0```
+```
+sudo apt install  docker.io unzip mysql-client-core-8.0
+```
 
 Step 4: Chek the docker version to ensure docker is installed
-```docker --version```
+```
+docker --version
+```
 
 Step 5: Start and enable the docker
+
 ```
 sudo systemctl start docker
 sudo systemctl enable docker
@@ -236,31 +254,47 @@ Step 6: Install docker compose by following the below commands.
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 ```
 
-```sudo chmod +x /usr/local/bin/docker-compose```
+```
+sudo chmod +x /usr/local/bin/docker-compose
+```
 
 Step 7: Verify docker compose version
-```docker-compose --version```
+```
+docker-compose --version
+```
 
 Step 8: Clone the setup files from git
-```git clone https://github.com/syednazrulhasan/apache_php_mysql_contenarized.git```
+```
+git clone https://github.com/syednazrulhasan/apache_php_mysql_dockerized.git
+```
 
 Step 9: cd into the cloned directory and run following command
-```docker-compose up -d```
+```
+docker-compose up -d
+```
 
 
-### Notes
+### Docker Commands
 
 To stop all running containers
-```docker stop $(docker ps -a -q)```
+```
+docker stop $(docker ps -a -q)
+```
 
 To remove all containers that are stopped
-```docker rm -f $(docker ps -a -q)```
+```
+docker rm -f $(docker ps -a -q)
+```
 
 To remove images that are not in use
-```docker rmi -f $(docker images -q)```
+```
+docker rmi -f $(docker images -q)
+```
 
 To clear system of all cluttered containers
-```docker system prune -a```
+```
+docker system prune -a
+```
 
 
 
